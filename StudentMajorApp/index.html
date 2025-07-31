@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Major Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #4CAF50;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        form input, form select {
+            width: calc(100% - 20px);
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        form button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Student Major Predictor</h1>
+        <form id="predictForm">
+            <label for="highSchoolGPA">High School GPA:</label>
+            <input type="number" id="highSchoolGPA" name="High School GPA" step="0.01" required><br>
+
+            <label for="entranceExamScore">Entrance Exam Score:</label>
+            <input type="number" id="entranceExamScore" name="Entrance Exam Score" required><br>
+
+            <label for="gender">Gender:</label>
+            <select id="gender" name="Gender">
+                <option value="0">Male</option>
+                <option value="1">Female</option>
+            </select><br>
+
+            <label for="learningStyle">Learning Style:</label>
+            <select id="learningStyle" name="Learning Style">
+                <option value="0">Visual</option>
+                <option value="1">Auditory</option>
+                <option value="2">Reading/Writing</option>
+                <option value="3">Kinesthetic</option>
+            </select><br>
+
+            <label for="studyEnvironment">Study Environment:</label>
+            <select id="studyEnvironment" name="Study Environment">
+                <option value="0">Poor</option>
+                <option value="1">Average</option>
+                <option value="2">Good</option>
+                <option value="3">Excellent</option>
+            </select><br>
+
+            <button type="button" onclick="predictMajor()">Predict Major</button>
+        </form>
+
+        <h2 id="result"></h2>
+
+        <footer>
+            
+        </footer>
+    </div>
+
+    <script>
+        const majorMapping = {
+            "EE": "Electrical Engineer",
+            "CE": "Computer Engineer",
+            "CS": "Computer Science",
+            "BA": "Bachelor of Arts",
+            "ME": "Mechanical Engineer"
+        };
+
+        async function predictMajor() {
+            const form = document.getElementById('predictForm');
+            const formData = new FormData(form);
+
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = key === 'Gender' || key === 'Learning Style' || key === 'Study Environment'
+                    ? parseInt(value)
+                    : parseFloat(value);
+            });
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (result.predicted_major) {
+                    const displayMajor = majorMapping[result.predicted_major] || result.predicted_major;
+                    document.getElementById('result').innerText = `Predicted Major: ${displayMajor}`;
+                } else {
+                    document.getElementById('result').innerText = `Error: ${result.error}`;
+                }
+            } catch (error) {
+                document.getElementById('result').innerText = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
